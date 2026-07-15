@@ -575,7 +575,9 @@ td a:hover {
     opacity: 1 !important;
     transform: none !important;
   }
-}.site-footer {
+}
+
+.site-footer {
     width: 100%;
     margin-top: 80px;
     padding: 20px 0;
@@ -583,8 +585,9 @@ td a:hover {
     border-top: 1px solid #232838;
     color: #8a8f9c;
     font-size: 13px;
+    position: relative;
+    z-index: 1;
 }
-
 .site-footer strong {
     color: #4fd1c5;
     font-weight: 600;
