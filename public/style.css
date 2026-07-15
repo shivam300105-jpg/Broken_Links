@@ -36,6 +36,10 @@
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   font-family: var(--font-body);
   background: var(--ink);
@@ -46,6 +50,8 @@ body {
   -webkit-font-smoothing: antialiased;
   position: relative;
   min-height: 100vh;
+  overflow-x: hidden;
+  width: 100%;
 
   display: flex;
   flex-direction: column;
@@ -428,7 +434,12 @@ body.is-scanning .scan-network-bg {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-wrap table {
+  min-width: 560px;
 }
 
 table {
@@ -559,10 +570,25 @@ td a:hover {
   .summary { grid-template-columns: 1fr; }
   .scan-form { flex-wrap: wrap; }
   .prompt-glyph { display: none; }
+  .glow-orb { display: none; }
 }
 
-@media (max-width: 640px) {
-  .glow-orb { display: none; }
+@media (max-width: 420px) {
+  body { padding: 32px 14px 60px; }
+  .eyebrow { font-size: 10.5px; }
+  h1 { font-size: 26px; }
+  .subtitle { font-size: 14px; }
+  .scan-form { padding: 6px; }
+  .scan-form input { font-size: 13.5px; padding: 11px 4px; }
+  .scan-form button { padding: 11px 18px; font-size: 13px; }
+  .metric { padding: 16px 18px; }
+  .metric strong { font-size: 24px; }
+  th, td { padding: 11px 14px; font-size: 12px; }
+}
+
+@media (min-width: 1440px) {
+  body { padding-top: 96px; }
+  .container { max-width: 760px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
