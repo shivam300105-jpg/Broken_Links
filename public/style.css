@@ -41,11 +41,14 @@ body {
   background: var(--ink);
   color: var(--text);
   margin: 0;
-  padding: 64px 24px 100px;
+  padding: 64px 24px 0;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   position: relative;
   min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .grid-backdrop {
@@ -117,6 +120,8 @@ body {
   margin: 0 auto;
   position: relative;
   z-index: 1;
+
+  flex: 1;
 }
 
 .eyebrow {
@@ -570,4 +575,18 @@ td a:hover {
     opacity: 1 !important;
     transform: none !important;
   }
+}
+footer {
+    margin-top: 60px;
+    padding: 20px;
+    text-align: center;
+    color: #8a8f9c;
+    font-size: 13px;
+    border-top: 1px solid #232838;
+    background: transparent;
+}
+
+footer strong {
+    color: #4fd1c5;
+    font-weight: 600;
 }
