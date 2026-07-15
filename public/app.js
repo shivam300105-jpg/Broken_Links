@@ -61,15 +61,22 @@ function startScan(url) {
 }
 
 function handleProgress(data) {
+  const progressText = document.getElementById('progress-text');
+
   if (data.phase === 'crawling') {
     statusEl.textContent = `Crawling website... Pages scanned: ${data.pagesScanned || 0} | Links found: ${data.linksFound || 0}`;
+    if (progressText) {
+      progressText.textContent = 'Large site detected - this may take a few minutes.';
+    }
   }
 
   if (data.phase === 'validating') {
-    statusEl.textContent = `Checking links... ${data.checked || 0} / ${data.uniqueLinks || 0} checked (Remaining: ${data.remaining ?? '-'})`;
+    statusEl.textContent = `Validating links... ${data.checked || 0} / ${data.uniqueLinks || 0} checked (Remaining: ${data.remaining ?? '-'})`;
+    if (progressText) {
+      progressText.textContent = `Checking each link one by one - ${data.remaining ?? 0} remaining.`;
+    }
   }
 }
-
 function renderReport(report) {
   lastReport = report;
   progressEl.hidden = true;
