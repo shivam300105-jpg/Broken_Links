@@ -4,7 +4,7 @@ import axios from 'axios';
 const VALIDATION_TIMEOUT_MS = 10000;
 
 const HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (compatible; ShopifyLinkScanner/1.0)',
+  'User-Agent': 'Mozilla/5.0 (compatible; BrokenLinkScanner/1.0)',
 };
 
 const STATUS_TEXT_MAP = {
@@ -45,7 +45,7 @@ function classifyError(err) {
 
 /**
  * Validate a single URL. Tries HEAD first (cheap), falls back to GET
- * because some Shopify/CDN endpoints reject or mishandle HEAD requests.
+ * because some servers/CDNs reject or mishandle HEAD requests.
  */
 export async function validateLink(url) {
   try {

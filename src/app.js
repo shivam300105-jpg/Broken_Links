@@ -15,7 +15,7 @@ app.use('/', scanRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Shopify Broken Link Scanner running on http://localhost:${PORT}`);
+  console.log(`Broken Link Scanner running on http://localhost:${PORT}`);
 });
 
 export default app;

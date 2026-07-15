@@ -46,9 +46,8 @@ async function fetchXml(url) {
 }
 
 /**
- * Shopify exposes a full sitemap at /sitemap.xml (an index pointing to
- * sitemap_products_*.xml, sitemap_collections_*.xml, sitemap_pages_*.xml,
- * sitemap_blogs_*.xml). Pulling every URL from it gives near-complete page
+ * Most modern websites expose a full sitemap at /sitemap.xml (often an
+ * index pointing to further sub-sitemaps). Pulling every URL from it gives near-complete page
  * coverage up front, instead of relying only on following links from the
  * homepage - which can miss pages that aren't linked from anywhere reachable
  * within MAX_PAGES.
@@ -77,7 +76,7 @@ async function getSitemapUrls(baseUrl) {
 }
 
 /**
- * Crawl an entire Shopify site (BFS, concurrent workers), seeded with the
+ * Crawl an entire website (BFS, concurrent workers), seeded with the
  * full sitemap for complete coverage. Only INTERNAL links are collected -
  * external links are intentionally ignored.
  */

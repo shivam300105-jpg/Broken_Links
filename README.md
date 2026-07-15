@@ -1,6 +1,6 @@
-# Shopify Broken Link Scanner
+# Broken Link Scanner
 
-Crawls a Shopify store, checks every internal link, and reports only confirmed
+Crawls any website, checks every internal link, and reports only confirmed
 broken links (404 / 403). Live progress via Server-Sent Events.
 
 ## Setup
@@ -21,7 +21,8 @@ Then open `http://localhost:3000`.
 
 ## How it works
 
-1. Seeds the crawl queue from the store's `/sitemap.xml` for full coverage.
+1. Seeds the crawl queue from the site's `/sitemap.xml` (if available) for
+   full coverage.
 2. Crawls every internal page concurrently, extracting internal links.
 3. Deduplicates links, then validates each one (HEAD → GET fallback) with
    proper error classification.

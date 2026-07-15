@@ -11,7 +11,7 @@ const BROKEN_STATUSES = new Set([404, 403]);
  * Full scan pipeline: crawl (internal pages only) -> dedupe -> validate ->
  * keep only real broken links (404 / 403) -> build report.
  *
- * @param {string} url - starting URL of the Shopify site
+ * @param {string} url - starting URL of the website to scan
  * @param {function} onProgress - optional callback for live updates (SSE route)
  */
 export async function startScan(url, onProgress = () => {}) {
