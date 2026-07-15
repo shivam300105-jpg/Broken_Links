@@ -4,9 +4,9 @@ import { extractLinks } from '../parser/extractLinks.js';
 import { isInternalLink, shouldIgnore, getDomain, getCrawlKey } from '../utils/urlHelper.js';
 
 const MAX_PAGES = 800;
-const PAGE_TIMEOUT_MS = 12000;
-const CRAWL_CONCURRENCY = 6;
-const MIN_INTERVAL_MS = 80;
+const PAGE_TIMEOUT_MS = 9000;
+const CRAWL_CONCURRENCY = 10;
+const MIN_INTERVAL_MS = 40;
 
 const HEADERS = {
   'User-Agent':

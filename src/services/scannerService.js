@@ -1,12 +1,16 @@
 import { crawlWebsite } from '../crawler/crawler.js';
 import { validateLinksBatch } from '../validator/validator.js';
 
-const VALIDATION_CONCURRENCY = 25;
+const VALIDATION_CONCURRENCY = 30;
 
-// Only these statuses count as "broken". 500/502/503/TIMEOUT are usually
-// temporary server hiccups, not a real dead link - so they are ignored.
-const BROKEN_STATUSES = new Set([404, 403]);
+// 404/403 = confirmed dead page. DNS_ERROR = domain doesn't resolve at all,
+// which is also permanent (unlike TIMEOUT/500 which can be transient).
+const BROKEN_NUMERIC_STATUSES = new Set([404, 403]);
+const BROKEN_STRING_STATUSES = new Set(['DNS_ERROR']);
 
+function isBroken(status) {
+  return BROKEN_NUMERIC_STATUSES.has(status) || BROKEN_STRING_STATUSES.has(status);
+}
 /**
  * Full scan pipeline: crawl (internal pages only) -> dedupe -> validate ->
  * keep only real broken links (404 / 403) -> build report.
@@ -52,7 +56,7 @@ export async function startScan(url, onProgress = () => {}) {
   });
 
   const brokenLinks = results
-    .filter((r) => typeof r.status === 'number' && BROKEN_STATUSES.has(r.status))
+    .filter((r) => isBroken(r.status))
     .map((r) => ({
       sourcePage: uniqueLinkMap.get(r.url),
       brokenUrl: r.url,

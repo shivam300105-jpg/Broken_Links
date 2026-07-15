@@ -1,7 +1,7 @@
 // src/validator/validator.js
 import axios from 'axios';
 
-const VALIDATION_TIMEOUT_MS = 10000;
+const VALIDATION_TIMEOUT_MS = 8000;
 
 const HEADERS = {
   'User-Agent': 'Mozilla/5.0 (compatible; BrokenLinkScanner/1.0)',
