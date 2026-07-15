@@ -1,0 +1,76 @@
+import { crawlWebsite } from '../crawler/crawler.js';
+import { validateLinksBatch } from '../validator/validator.js';
+
+const VALIDATION_CONCURRENCY = 25;
+
+// Only these statuses count as "broken". 500/502/503/TIMEOUT are usually
+// temporary server hiccups, not a real dead link - so they are ignored.
+const BROKEN_STATUSES = new Set([404, 403]);
+
+/**
+ * Full scan pipeline: crawl (internal pages only) -> dedupe -> validate ->
+ * keep only real broken links (404 / 403) -> build report.
+ *
+ * @param {string} url - starting URL of the Shopify site
+ * @param {function} onProgress - optional callback for live updates (SSE route)
+ */
+export async function startScan(url, onProgress = () => {}) {
+  onProgress({ phase: 'crawling', pagesScanned: 0, linksFound: 0 });
+
+  const { pagesScanned, discoveredLinks } = await crawlWebsite(url, (progress) => {
+    onProgress({ phase: 'crawling', ...progress });
+  });
+
+  // Dedupe: validate each unique internal link only once
+  const uniqueLinkMap = new Map(); // link -> sourcePage
+  for (const { sourcePage, link } of discoveredLinks) {
+    if (!uniqueLinkMap.has(link)) {
+      uniqueLinkMap.set(link, sourcePage);
+    }
+  }
+
+  const uniqueLinks = Array.from(uniqueLinkMap.keys());
+
+  onProgress({
+    phase: 'validating',
+    pagesScanned,
+    linksFound: discoveredLinks.length,
+    uniqueLinks: uniqueLinks.length,
+    checked: 0,
+    remaining: uniqueLinks.length,
+  });
+
+  const results = await validateLinksBatch(uniqueLinks, VALIDATION_CONCURRENCY, ({ checked, total }) => {
+    onProgress({
+      phase: 'validating',
+      pagesScanned,
+      linksFound: discoveredLinks.length,
+      uniqueLinks: uniqueLinks.length,
+      checked,
+      remaining: total - checked,
+    });
+  });
+
+  const brokenLinks = results
+    .filter((r) => typeof r.status === 'number' && BROKEN_STATUSES.has(r.status))
+    .map((r) => ({
+      sourcePage: uniqueLinkMap.get(r.url),
+      brokenUrl: r.url,
+      status: r.status,
+      statusText: r.statusText,
+    }));
+
+  const report = {
+    success: true,
+    website: url,
+    pagesScanned,
+    totalLinks: discoveredLinks.length,
+    uniqueLinksChecked: uniqueLinks.length,
+    brokenLinksCount: brokenLinks.length,
+    brokenLinks,
+  };
+
+  onProgress({ phase: 'done', report });
+
+  return report;
+}

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shopify Broken Link Scanner</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="grid-backdrop" aria-hidden="true">
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+
+    <svg id="scan-network-bg" class="scan-network-bg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <line class="scan-link" x1="120" y1="620" x2="300" y2="420" style="--d:0s" />
+      <line class="scan-link" x1="300" y1="420" x2="220" y2="180" style="--d:0.3s" />
+      <line class="scan-link" x1="300" y1="420" x2="520" y2="520" style="--d:0.6s" />
+      <line class="scan-link" x1="520" y1="520" x2="480" y2="720" style="--d:0.9s" />
+      <line class="scan-link" x1="520" y1="520" x2="720" y2="380" style="--d:1.2s" />
+      <line class="scan-link" x1="720" y1="380" x2="700" y2="150" style="--d:1.5s" />
+      <line class="scan-link" x1="720" y1="380" x2="920" y2="460" style="--d:0.4s" />
+      <line class="scan-link" x1="920" y1="460" x2="960" y2="650" style="--d:0.8s" />
+      <line class="scan-link" x1="920" y1="460" x2="1120" y2="320" style="--d:1.1s" />
+      <line class="scan-link" x1="1120" y1="320" x2="1280" y2="500" style="--d:1.4s" />
+      <line class="scan-link" x1="1120" y1="320" x2="1180" y2="130" style="--d:0.2s" />
+      <line class="scan-link" x1="220" y1="180" x2="420" y2="120" style="--d:0.7s" />
+      <line class="scan-link" x1="480" y1="720" x2="700" y2="780" style="--d:1s" />
+
+      <circle class="scan-node" cx="120" cy="620" r="4.5" style="--d:0s" />
+      <circle class="scan-node" cx="300" cy="420" r="5" style="--d:0.3s" />
+      <circle class="scan-node" cx="220" cy="180" r="4" style="--d:0.6s" />
+      <circle class="scan-node" cx="420" cy="120" r="3.5" style="--d:0.9s" />
+      <circle class="scan-node" cx="520" cy="520" r="5" style="--d:0.5s" />
+      <circle class="scan-node" cx="480" cy="720" r="4" style="--d:0.8s" />
+      <circle class="scan-node" cx="700" cy="780" r="3.5" style="--d:1.1s" />
+      <circle class="scan-node" cx="720" cy="380" r="5" style="--d:0.7s" />
+      <circle class="scan-node" cx="700" cy="150" r="4" style="--d:1s" />
+      <circle class="scan-node" cx="920" cy="460" r="5" style="--d:0.4s" />
+      <circle class="scan-node" cx="960" cy="650" r="4" style="--d:1.3s" />
+      <circle class="scan-node" cx="1120" cy="320" r="5" style="--d:0.2s" />
+      <circle class="scan-node" cx="1280" cy="500" r="4" style="--d:1.5s" />
+      <circle class="scan-node" cx="1180" cy="130" r="3.5" style="--d:0.6s" />
+    </svg>
+  </div>
+
+  <main class="container">
+    <div class="eyebrow"><span class="eyebrow-dot"></span>LINK INTEGRITY SCANNER</div>
+    <h1>Find every broken link<br />on your Shopify store</h1>
+    <p class="subtitle">Crawls every internal page, checks every link, reports only what's actually dead — 404s and 403s.</p>
+
+    <form id="scan-form" class="scan-form">
+      <span class="prompt-glyph">&gt;</span>
+      <input type="url" id="website-url" placeholder="https://yourstore.myshopify.com" required autocomplete="off" spellcheck="false" />
+      <button type="submit" id="scan-btn">Scan Website</button>
+    </form>
+
+    <p id="status" class="status"></p>
+
+    <div id="progress" class="scan-status-line" hidden>
+      <span class="scan-status-dot"></span>
+      <span>Reading pages and following links…</span>
+    </div>
+
+    <section id="results" hidden>
+      <div class="summary">
+        <span class="metric metric-pages"><strong id="stat-pages">0</strong>Pages Scanned</span>
+        <span class="metric metric-links"><strong id="stat-links">0</strong>Links Checked</span>
+        <span class="metric metric-broken"><strong id="stat-broken">0</strong>Broken Links</span>
+      </div>
+
+      <div class="panel-header">
+        <p class="panel-note">Confirmed broken internal links — 404 / 403 only.</p>
+        <button class="export-btn" id="export-broken">Export CSV</button>
+      </div>
+
+      <div class="table-wrap">
+        <table id="broken-links-table">
+          <thead>
+            <tr>
+              <th>Source Page</th>
+              <th>Broken URL</th>
+              <th>Status</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
