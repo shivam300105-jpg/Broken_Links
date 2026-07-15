@@ -4,15 +4,35 @@ import { extractLinks } from '../parser/extractLinks.js';
 import { isInternalLink, shouldIgnore, getDomain, getCrawlKey } from '../utils/urlHelper.js';
 
 const MAX_PAGES = 800;
-const PAGE_TIMEOUT_MS = 8000;
-const CRAWL_CONCURRENCY = 10;
+const PAGE_TIMEOUT_MS = 12000;
+const CRAWL_CONCURRENCY = 6;
+const MIN_INTERVAL_MS = 80;
 
 const HEADERS = {
   'User-Agent':
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 };
 
-async function fetchHtml(url) {
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Global throttle - all workers share this, so no matter how many run in
+// parallel, requests never go out faster than MIN_INTERVAL_MS apart. This
+// is what keeps results consistent across repeated scans of the same site.
+let throttleChain = Promise.resolve();
+function throttledSlot() {
+  const next = throttleChain.then(() => delay(MIN_INTERVAL_MS));
+  throttleChain = next;
+  return next;
+}
+
+// Retry once before giving up. Most timeouts are transient (server was
+// briefly slow), not a genuinely dead page - without this, a page can
+// succeed on one scan and fail on the next, changing the final counts.
+async function fetchWithRetry(url, retriesLeft = 1) {
+  await throttledSlot();
+
   try {
     const response = await axios.get(url, {
       timeout: PAGE_TIMEOUT_MS,
@@ -21,36 +41,38 @@ async function fetchHtml(url) {
     });
 
     if (response.status >= 400) return null;
-
-    const contentType = response.headers['content-type'] || '';
-    if (!contentType.includes('text/html')) return null;
-
-    return response.data;
+    return response;
   } catch {
+    if (retriesLeft > 0) {
+      await delay(500);
+      return fetchWithRetry(url, retriesLeft - 1);
+    }
     return null;
   }
 }
 
+async function fetchHtml(url) {
+  const response = await fetchWithRetry(url);
+  if (!response) return null;
+
+  const contentType = response.headers['content-type'] || '';
+  if (!contentType.includes('text/html')) return null;
+
+  return response.data;
+}
+
 async function fetchXml(url) {
-  try {
-    const response = await axios.get(url, {
-      timeout: PAGE_TIMEOUT_MS,
-      headers: HEADERS,
-      validateStatus: () => true,
-    });
-    if (response.status >= 400 || typeof response.data !== 'string') return null;
-    return response.data;
-  } catch {
-    return null;
-  }
+  const response = await fetchWithRetry(url);
+  if (!response || typeof response.data !== 'string') return null;
+  return response.data;
 }
 
 /**
  * Most modern websites expose a full sitemap at /sitemap.xml (often an
- * index pointing to further sub-sitemaps). Pulling every URL from it gives near-complete page
- * coverage up front, instead of relying only on following links from the
- * homepage - which can miss pages that aren't linked from anywhere reachable
- * within MAX_PAGES.
+ * index pointing to further sub-sitemaps). Pulling every URL from it gives
+ * near-complete page coverage up front, instead of relying only on following
+ * links from the homepage - which can miss pages that aren't linked from
+ * anywhere reachable within MAX_PAGES.
  */
 async function getSitemapUrls(baseUrl) {
   const domain = getDomain(baseUrl);
@@ -109,7 +131,7 @@ export async function crawlWebsite(startUrl, onProgress = () => {}) {
     while (pagesScanned < MAX_PAGES) {
       if (queue.isEmpty()) {
         if (activeFetches === 0) return;
-        await new Promise((resolve) => setTimeout(resolve, 40));
+        await delay(40);
         continue;
       }
 

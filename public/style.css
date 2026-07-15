@@ -116,10 +116,11 @@ body {
 }
 
 .container {
-  max-width: 940px;
+  max-width: 1200px;
   margin: 0 auto;
   position: relative;
   z-index: 1;
+  width: 100%;
 
   flex: 1;
 }
@@ -193,6 +194,7 @@ h1 {
 
 .scan-form input {
   flex: 1;
+  min-width: 0;
   padding: 13px 4px;
   font-size: 15px;
   font-family: var(--font-mono);
