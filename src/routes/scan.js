@@ -39,10 +39,22 @@ router.get('/scan-stream', async (req, res) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
+  // Send a harmless comment every 15s so proxies/load balancers never see
+  // the connection sit idle long enough to time it out during a long scan.
+  const keepAlive = setInterval(() => {
+    res.write(': keep-alive\n\n');
+  }, 15000);
+
+  req.on('close', () => {
+    clearInterval(keepAlive);
+  });
+
   try {
     await startScan(url, sendEvent);
   } catch (err) {
     sendEvent({ phase: 'error', error: err.message });
+  } finally {
+    clearInterval(keepAlive);
   }
 
   res.end();

@@ -52,7 +52,7 @@ function startScan(url) {
   };
 
   source.onerror = () => {
-    statusEl.textContent = 'Connection lost. Please try again.';
+    statusEl.textContent = 'Connection lost — the site may be too large for a single scan, or the server restarted. Try again, or scan a smaller section.';
     progressEl.hidden = true;
     document.body.classList.remove('is-scanning');
     source.close();
