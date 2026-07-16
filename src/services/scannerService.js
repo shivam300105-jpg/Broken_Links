@@ -17,6 +17,8 @@ function isBroken(status) {
   return BROKEN_STRING_STATUSES.has(status);
 }
 
+const MAX_LINKS_TO_VALIDATE = 4000; // similar safety cap to what commercial tools use on free tiers
+
 export async function startScan(url, onProgress = () => {}) {
   onProgress({ phase: 'crawling', pagesScanned: 0, linksFound: 0 });
 
@@ -31,7 +33,11 @@ export async function startScan(url, onProgress = () => {}) {
     }
   }
 
-  const uniqueLinks = Array.from(uniqueLinkMap.keys());
+  let uniqueLinks = Array.from(uniqueLinkMap.keys());
+  const cappedNote = uniqueLinks.length > MAX_LINKS_TO_VALIDATE;
+  if (cappedNote) {
+    uniqueLinks = uniqueLinks.slice(0, MAX_LINKS_TO_VALIDATE);
+  }
 
   onProgress({
     phase: 'validating',
@@ -77,6 +83,7 @@ export async function startScan(url, onProgress = () => {}) {
     sitemapUrlsFound,
     totalLinks: discoveredLinks.length,
     uniqueLinksChecked: uniqueLinks.length,
+    cappedAt: cappedNote ? MAX_LINKS_TO_VALIDATE : null,
     brokenLinksCount: brokenLinks.length,
     brokenLinks,
   };
