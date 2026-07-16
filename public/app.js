@@ -86,6 +86,11 @@ function renderReport(report) {
   document.getElementById('stat-links').textContent = report.uniqueLinksChecked;
   document.getElementById('stat-broken').textContent = report.brokenLinksCount;
 
+  const coverageNote = document.getElementById('coverage-note');
+  if (coverageNote && report.sitemapUrlsFound !== undefined) {
+    coverageNote.textContent = `Sitemap found ${report.sitemapUrlsFound} pages · ${report.pagesScanned} scanned`;
+  }
+
   resultsEl.hidden = false;
 
   tableBody.innerHTML = '';
@@ -111,7 +116,16 @@ function renderReport(report) {
 
 function badgeForStatus(status) {
   const str = String(status);
-  const cls = str === '404' ? 'badge-red' : 'badge-orange'; // 403
+  const redStatuses = [
+    '404',
+    '410',
+    'DNS_ERROR',
+    'CONNECTION_REFUSED',
+    'SOFT_404',
+    'REDIRECTED_TO_HOME',
+  ];
+  const cls = redStatuses.includes(str) ? 'badge-red' : 'badge-orange';
+
   return `<span class="badge ${cls}">${escapeHtml(str)}</span>`;
 }
 

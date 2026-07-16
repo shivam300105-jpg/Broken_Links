@@ -3,30 +3,28 @@ import { validateLinksBatch } from '../validator/validator.js';
 
 const VALIDATION_CONCURRENCY = 30;
 
-// 404/403 = confirmed dead page. DNS_ERROR = domain doesn't resolve at all,
-// which is also permanent (unlike TIMEOUT/500 which can be transient).
-const BROKEN_NUMERIC_STATUSES = new Set([404, 403]);
-const BROKEN_STRING_STATUSES = new Set(['DNS_ERROR']);
+const BROKEN_NUMERIC_STATUSES = new Set([404, 403, 410]);
+const BROKEN_STRING_STATUSES = new Set([
+  'DNS_ERROR',
+  'CONNECTION_REFUSED',
+  'SSL_ERROR',
+  'SOFT_404',
+  'REDIRECTED_TO_HOME',
+]);
 
 function isBroken(status) {
-  return BROKEN_NUMERIC_STATUSES.has(status) || BROKEN_STRING_STATUSES.has(status);
+  if (typeof status === 'number') return BROKEN_NUMERIC_STATUSES.has(status);
+  return BROKEN_STRING_STATUSES.has(status);
 }
-/**
- * Full scan pipeline: crawl (internal pages only) -> dedupe -> validate ->
- * keep only real broken links (404 / 403) -> build report.
- *
- * @param {string} url - starting URL of the website to scan
- * @param {function} onProgress - optional callback for live updates (SSE route)
- */
+
 export async function startScan(url, onProgress = () => {}) {
   onProgress({ phase: 'crawling', pagesScanned: 0, linksFound: 0 });
 
-  const { pagesScanned, discoveredLinks } = await crawlWebsite(url, (progress) => {
+  const { pagesScanned, discoveredLinks, sitemapUrlsFound } = await crawlWebsite(url, (progress) => {
     onProgress({ phase: 'crawling', ...progress });
   });
 
-  // Dedupe: validate each unique internal link only once
-  const uniqueLinkMap = new Map(); // link -> sourcePage
+  const uniqueLinkMap = new Map();
   for (const { sourcePage, link } of discoveredLinks) {
     if (!uniqueLinkMap.has(link)) {
       uniqueLinkMap.set(link, sourcePage);
@@ -55,6 +53,14 @@ export async function startScan(url, onProgress = () => {}) {
     });
   });
 
+  // TEMPORARY DEBUG - keep for one more run to confirm the fix, then remove
+  const statusCounts = {};
+  results.forEach((r) => {
+    const key = String(r.status);
+    statusCounts[key] = (statusCounts[key] || 0) + 1;
+  });
+  console.log('--- STATUS BREAKDOWN ---', statusCounts);
+
   const brokenLinks = results
     .filter((r) => isBroken(r.status))
     .map((r) => ({
@@ -68,6 +74,7 @@ export async function startScan(url, onProgress = () => {}) {
     success: true,
     website: url,
     pagesScanned,
+    sitemapUrlsFound,
     totalLinks: discoveredLinks.length,
     uniqueLinksChecked: uniqueLinks.length,
     brokenLinksCount: brokenLinks.length,

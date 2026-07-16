@@ -51,7 +51,7 @@
   <main class="container">
     <div class="eyebrow"><span class="eyebrow-dot"></span>LINK INTEGRITY SCANNER</div>
     <h1>Find every broken link<br />on your website</h1>
-    <p class="subtitle">Crawls every internal page, checks every link, reports only what's actually dead — 404s and 403s.</p>
+    <p class="subtitle">Crawls every internal page, checks every link, reports only what's genuinely dead — 404, 403, 410, DNS, SSL and connection failures.</p>
 
     <form id="scan-form" class="scan-form">
       <span class="prompt-glyph">&gt;</span>
@@ -72,9 +72,9 @@
         <span class="metric metric-links"><strong id="stat-links">0</strong>Links Checked</span>
         <span class="metric metric-broken"><strong id="stat-broken">0</strong>Broken Links</span>
       </div>
-
+      <p id="coverage-note" style="font-size:12px;color:var(--text-faint);margin:-20px 0 20px;"></p>
       <div class="panel-header">
-        <p class="panel-note">Confirmed broken internal links — 404 / 403 only.</p>
+        <p class="panel-note">Confirmed broken internal links — permanent failures only (429/timeouts excluded).</p>
         <button class="export-btn" id="export-broken">Export CSV</button>
       </div>
 

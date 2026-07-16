@@ -3,7 +3,7 @@ import { Queue } from './queue.js';
 import { extractLinks } from '../parser/extractLinks.js';
 import { isInternalLink, shouldIgnore, getDomain, getCrawlKey } from '../utils/urlHelper.js';
 
-const MAX_PAGES = 250;
+const MAX_PAGES = 3000;
 const PAGE_TIMEOUT_MS = 9000;
 const CRAWL_CONCURRENCY = 10;
 const MIN_INTERVAL_MS = 40;
@@ -185,5 +185,5 @@ export async function crawlWebsite(startUrl, onProgress = () => {}) {
   const workers = Array.from({ length: CRAWL_CONCURRENCY }, () => worker());
   await Promise.all(workers);
 
-  return { pagesScanned, discoveredLinks };
+  return { pagesScanned, discoveredLinks, sitemapUrlsFound: sitemapUrls.length };
 }
