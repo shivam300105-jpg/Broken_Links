@@ -160,8 +160,6 @@ function escapeAttr(str) {
   return String(str).replace(/"/g, '&quot;');
 }
 
-// Smoothly counts a stat number up from 0 to its final value instead of
-// just snapping to it - gives the summary cards a more premium feel.
 function animateCounter(elementId, target) {
   const el = document.getElementById(elementId);
   if (!el) return;
@@ -178,8 +176,120 @@ function animateCounter(elementId, target) {
       requestAnimationFrame(tick);
     } else {
       el.textContent = target;
+      el.classList.remove('count-done');
+      void el.offsetWidth;
+      el.classList.add('count-done');
     }
   }
 
   requestAnimationFrame(tick);
 }
+
+// --- Premium interaction effects ---
+
+// 1. Cursor-following spotlight across the whole page background.
+(function setupCursorSpotlight() {
+  let active = false;
+
+  window.addEventListener('mousemove', (e) => {
+    document.documentElement.style.setProperty('--mx', `${e.clientX}px`);
+    document.documentElement.style.setProperty('--my', `${e.clientY}px`);
+
+    if (!active) {
+      active = true;
+      document.body.classList.add('cursor-active');
+    }
+  });
+
+  window.addEventListener('mouseleave', () => {
+    active = false;
+    document.body.classList.remove('cursor-active');
+  });
+})();
+
+// 2. Subtle 3D tilt on the search form and stat cards as the mouse moves
+// over them - the element leans slightly toward the cursor.
+function attachTilt(el) {
+  if (!el) return;
+  el.classList.add('tilt-card');
+
+  el.addEventListener('mousemove', (e) => {
+    const rect = el.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+
+    el.style.setProperty('--rx', `${px * 6}deg`);
+    el.style.setProperty('--ry', `${-py * 6}deg`);
+  });
+
+  el.addEventListener('mouseleave', () => {
+    el.style.setProperty('--rx', '0deg');
+    el.style.setProperty('--ry', '0deg');
+  });
+}
+
+attachTilt(document.querySelector('.scan-form'));
+document.querySelectorAll('.metric').forEach(attachTilt);
+
+// 3. Magnetic pull on the scan button - it shifts a few pixels toward the
+// cursor when nearby, and snaps back on mouse leave.
+(function setupMagneticButton() {
+  const btn = document.getElementById('scan-btn');
+  if (!btn) return;
+
+  btn.addEventListener('mousemove', (e) => {
+    const rect = btn.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+
+    btn.style.setProperty('--btn-x', `${x * 0.15}px`);
+    btn.style.setProperty('--btn-y', `${y * 0.15}px`);
+    btn.style.setProperty('--btn-scale', '1.03');
+  });
+
+  btn.addEventListener('mouseleave', () => {
+    btn.style.setProperty('--btn-x', '0px');
+    btn.style.setProperty('--btn-y', '0px');
+    btn.style.setProperty('--btn-scale', '1');
+  });
+})();
+
+// 4. Ripple effect spawned from the exact click point on the scan button.
+(function setupRipple() {
+  const btn = document.getElementById('scan-btn');
+  if (!btn) return;
+
+  btn.style.position = 'relative';
+  btn.style.overflow = 'hidden';
+
+  btn.addEventListener('click', (e) => {
+    const rect = btn.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    const size = Math.max(rect.width, rect.height);
+
+    ripple.classList.add('ripple');
+    ripple.style.width = `${size}px`;
+    ripple.style.height = `${size}px`;
+    ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+    ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+
+    btn.appendChild(ripple);
+    ripple.addEventListener('animationend', () => ripple.remove());
+  });
+})();
+
+// 5. Small bounce on the ">" prompt glyph each time the user types.
+(function setupGlyphPulse() {
+  const input = document.getElementById('website-url');
+  const glyph = document.querySelector('.prompt-glyph');
+  if (!input || !glyph) return;
+
+  let timeout;
+  input.addEventListener('input', () => {
+    glyph.classList.remove('pulse');
+    void glyph.offsetWidth; // restart animation
+    glyph.classList.add('pulse');
+    clearTimeout(timeout);
+    timeout = setTimeout(() => glyph.classList.remove('pulse'), 300);
+  });
+})();
