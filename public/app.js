@@ -82,9 +82,9 @@ function renderReport(report) {
   progressEl.hidden = true;
   statusEl.textContent = 'Scan complete.';
 
-  document.getElementById('stat-pages').textContent = report.pagesScanned;
-  document.getElementById('stat-links').textContent = report.uniqueLinksChecked;
-  document.getElementById('stat-broken').textContent = report.brokenLinksCount;
+  animateCounter('stat-pages', report.pagesScanned);
+  animateCounter('stat-links', report.uniqueLinksChecked);
+  animateCounter('stat-broken', report.brokenLinksCount);
 
   const coverageNote = document.getElementById('coverage-note');
   if (coverageNote && report.sitemapUrlsFound !== undefined) {
@@ -158,4 +158,28 @@ function escapeHtml(str) {
 
 function escapeAttr(str) {
   return String(str).replace(/"/g, '&quot;');
+}
+
+// Smoothly counts a stat number up from 0 to its final value instead of
+// just snapping to it - gives the summary cards a more premium feel.
+function animateCounter(elementId, target) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+
+  const duration = 700;
+  const start = performance.now();
+
+  function tick(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(eased * target);
+
+    if (progress < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      el.textContent = target;
+    }
+  }
+
+  requestAnimationFrame(tick);
 }
